@@ -69,7 +69,7 @@ int main(const int argc, const char** argv) {
     glfwWindowHint(GLFW_SAMPLES, 4);
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(width, height, "OpenGL Clock", NULL, NULL);
+    window = glfwCreateWindow(width, height, "OpenGL Analog Clock", NULL, NULL);
     if (!window) {
         glfwTerminate();
         return -1;
@@ -124,7 +124,7 @@ int main(const int argc, const char** argv) {
         }
 
         std::stringstream ss;
-        ss << "OpenGL Clock W: " << width << " H: " << height << " @" << fps << " fps";
+        ss << "OpenGL Analog Clock W: " << width << " H: " << height << " @" << fps << " fps";
         glfwSetWindowTitle(window, ss.str().c_str());
 
         updateSize(window, &width, &height, shader);
