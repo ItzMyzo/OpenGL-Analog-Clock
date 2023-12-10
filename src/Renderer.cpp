@@ -12,8 +12,8 @@ void renderClock(int width, int height, float outlineWidth, float handWidth, uns
         drawShaderCircle(x, y, radius, 0.025, shader, vao, vbo);
         drawShaderCircle(x, y, 0.5 * handWidth, 1, shader, vao, vbo);
     } else {
-        drawCircle(x, y, radius, false, outlineWidth);
-        drawCircle(x, y,  0.5 * handWidth, true);
+        drawCircle(x, y, radius, false, vao, vbo, outlineWidth);
+        drawCircle(x, y,  0.5 * handWidth, true, vao, vbo);
     }
 
     glLineWidth(handWidth);
@@ -46,7 +46,7 @@ void drawClockHand(float x, float y, float radius, float percent, unsigned int v
 }
 
 void drawShaderCircle(float centerX, float centerY, float radius, float thickness, unsigned int shader, unsigned int vao, unsigned int vbo) {
-    const float startX = centerX - radius; // line width
+    const float startX = centerX - radius;
     const float startY = centerY - radius;
     const float endX = centerX + radius;
     const float endY = centerY + radius;
@@ -77,14 +77,35 @@ void updateSize(GLFWwindow* window, int* width, int* height, unsigned int shader
     }
 }
 
-void drawCircle(float x, float y, float radius, bool filled, float lineWidth, int startDegree, int endDegree) {
-    glLineWidth(lineWidth);
-    glBegin(filled ? GL_TRIANGLE_FAN : GL_LINE_LOOP);
+void drawCircle(float x, float y, float radius, bool filled, unsigned int vao, unsigned int vbo, float lineWidth, int startDegree, int endDegree) {
+    const unsigned int mode = filled ? GL_TRIANGLE_FAN : GL_LINE_LOOP;
+    
+    std::vector<float> vertices;
+    
     for (int degree = startDegree; degree <= endDegree; degree++) {
-        double radians = toRadians(degree);
-        glVertex2d(radius * sin(radians) + x, radius * cos(radians) + y);
+        const double radians = toRadians(degree);
+        vertices.push_back(radius * sin(radians) + x);
+        vertices.push_back(radius * cos(radians) + y);
     }
-    glEnd();
+
+    if (vao == 0) glGenVertexArrays(1, &vao);
+    if (vbo == 0) glGenBuffers(1, &vbo);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*) 0);
+    
+    glEnableVertexAttribArray(0);
+
+    glLineWidth(lineWidth);
+    glDrawArrays(mode, 0, vertices.size() / 2);
+
+    glDisableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 void drawRect(float startX, float startY, float endX, float endY, unsigned int vao, unsigned int vbo) {
